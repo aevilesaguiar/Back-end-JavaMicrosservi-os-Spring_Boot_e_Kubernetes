@@ -4,6 +4,14 @@ Livro Casa do Código
 
 ## Capítulo 1: Introdução
 
+Até alguns anos atrás, a grande maioria dos sistemas web era desenvolvida em uma arquitetura monolítica, isto é, tudo ficava em apenas um projeto,
+incluindo o back-end e o front-end. Alguns frameworks como o Struts e o JavaServer Faces inclusive disponibilizam diversas bibliotecas para a
+criação de interfaces ricas, o Prime Faces e o Rich Faces. Esse modelo tinha uma série de problemas, como alto acoplamento do front-end e do back-end
+da aplicação, projetos enormes com milhares de arquivos (HTMLs, JavaScript, CSS, scripts de banco de dados, Java) e diversas cópias do
+mesmo código em várias aplicações.
+
+
+
 ## Como funciona a arquitetura monolítica 
 
 
@@ -57,14 +65,103 @@ não vão acompanhar o potencial crescimento do sistema, evitando que você prec
 
 
 
+Atualmente, a maioria dos sistemas está sendo desenvolvida utilizando APIs e a arquiteturas de microsserviços, que busca resolver exatamente os
+problemas mencionados anteriormente. Com as APIs, o back-end é totalmente isolado do front-end e, com os microsserviços, os projetos são
+muito menores, não passando de algumas dezenas ou centenas de arquivos. Além disso, evita-se a duplicação de código já que cada serviço implementa
+uma funcionalidade específica e pode ser reutilizado por diversas aplicações.
 
 
+O Java continua sendo a linguagem mais utilizada para o desenvolvimento de aplicações back-end. Isso se deve ao grande grau de maturidade da
+linguagem e da sua máquina virtual. Existem diversas formas de desenvolver microsserviços em Java, como utilizar bibliotecas nativas ou o
+framework Spring. Aqui utilizaremos Spring Boot, Spring Data e o Spring Cloud.
 
 
+Obviamente, essa arquitetura também possui algumas desvantagens, como maior complexidade das aplicações e a latência para a comunicação entre os
+serviços. Testar as aplicações é uma tarefa mais complexa porque um microsserviço pode depender de vários outros. Um microsserviço de
+compras pode depender dos dados sobre o cliente e sobre os produtos, por exemplo. É possível testar os serviços localmente, mas, para isso, a pessoa
+desenvolvedora deve executar localmente todos os serviços.
+
+Uma maneira mais simples de testar as aplicações é criar um cluster local utilizando o Kubernetes, já que o cluster pode ficar executando em
+background e apenas o microsserviço alterado necessita ser atualizado. Além de facilitar os testes, utilizar o Kubernetes no ambiente de
+desenvolvimento aumenta a confiabilidade da aplicação, já que o ambiente do programador é muito mais próximo dos ambientes de homologação e
+produção.
+
+Para explicar todos esses conceitos, este livro começa apresentando o framework Spring e desenvolvendo um exemplo de uma aplicação com três
+microsserviços. A aplicação consiste em um serviço para cadastro de cliente, um para cadastro de produtos e um para compras. Para a execução
+das compras, os clientes e os produtos devem ser validados, o que requer a comunicação entre os serviços. Depois que a aplicação estiver pronta, será
+mostrado como criar um cluster no ambiente de desenvolvimento utilizando o Kubernetes.
 
 
+## 1.1 Framework Spring
 
+O Spring é um framework Java que possui uma grande quantidade de projetos, como o Spring Boot, o Spring Data e o Spring Cloud, que podem
+ser utilizados em conjunto ou não. É também possível utilizar outros frameworks com o Spring e até mesmo as bibliotecas do Enterprise Java
+Beans (EJB).
+Spring Framework é um framework desenvolvido para a plataforma Java baseado nos padrões de projetos (Design Patterns), inversão de controle e 
+injeção de dependência. É constituído por diversos e completos módulos capazes de dar um boost na aplicação Java.
 
+**Inversão de Controle**: Inversão de controle (Inversion of Control ou IoC, em inglês) trata-se da interrupção do fluxo de execução de um código 
+retirando, de certa forma, o controle sobre ele e delegando-o para uma dependência ou container. O principal propósito é minificar o acoplamento do código.No Java, 
+falamos mesmo em desacoplamento das classes. Isso permite um ganho enorme em manutenibilidade, além da facilidade de trocar ou acrescentar comportamentos ao 
+sistema, se necessário. Também diminui a possibilidade de ocorrência bugs em cascata.
+No Spring Framework, as instâncias das classes são fracamente acopladas, ou seja, a interdependência entre os objetos é mínima.A inversão de controle, 
+no Spring, é facilitada por outro Design Pattern: Injeção de Dependência.
+
+**Injeção de Dependência**: A injeção de dependência tem o propósito de evitar o acoplamento de código numa aplicação. Em outras palavras, é a proveniência 
+de instâncias de classes que um objeto precisa sem que este instancie por si mesmo. Podemos dizer que a injeção de dependência é uma forma de aplicar a 
+inversão de controle.
+
+## Spring Boot
+
+O Spring Boot é uma forma de criar aplicações baseadas no framework Spring de forma simples e rápida. Nelas, já existe um contêiner Web, que
+pode ser o Tomcat ou o Jetty, e a aplicação é executada com apenas um run, diferentemente de quando é necessário primeiro instalar e configurar um
+contêiner, gerar um arquivo WAR (Web Application Resource) e por fim implantá-lo no contêiner. O Spring Boot também facilita a configuração das
+aplicações através de arquivos properties ou diretamente no código, não sendo necessário o uso de arquivos XML. Há também uma grande
+quantidade de bibliotecas especialmente criadas para ele, como para acesso a dados em banco de dados relacionais e NoSQL, para geração de métricas
+sobre a aplicação, acesso a serviços e muito mais.
+
+## Spring Data
+
+O Spring Data é um projeto do Spring para facilitar a criação da camada de persistência de dados. Esse projeto tem abstrações para diferentes modelos
+de dados, como banco de dados relacionais e não relacionais como o MongoDB e o Redis.
+Relacionado a banco de dados relacionais, o Spring Data possibilita o acesso aos dados utilizando interfaces e definindo apenas o nome de um
+método. O framework, com isso, implementa todo o acesso ao banco de dados automaticamente. Por exemplo, a classe na listagem a seguir define
+três métodos que serão traduzidos para consultas em um banco de dados relacional:
+
+List<Pessoa> findByName(String name);
+List<Pessoa> findByAge(int age);
+Pessoa findByCpf(String cpf);
+ 
+ Nesse exemplo, para uma classe Pessoa , o Spring Data automaticamente gera um método que fará a busca, no primeiro caso pelo nome, no segundo,
+pela idade e no terceiro, pelo CPF. Obviamente, existe uma sintaxe correta para que o Spring Boot consiga gerar os métodos.
+ 
+## Spring Cloud
+
+ O Spring Cloud é um projeto que disponibiliza diversas funcionalidades para a construção de sistemas distribuídos, como gerenciamento de
+configuração, serviços de descoberta, proxys, eleição de líderes etc. É bastante simples usá-lo junto a projetos Spring Boot.
+ 
+Neste livro, vamos usá-lo para a gerência de configuração das aplicações.Nele serão centralizadas todas as configurações da aplicação, como nomes
+dos microsserviços e endereços de banco de dados. Isso evita problemas no caso de haver alterações. Por exemplo, imagine um projeto com mais de 20
+microsserviços, e que se deve mudar a porta do banco de dados em todos eles. Se a configuração é feita diretamente em cada serviço, o trabalho para
+mudar essa configuração será enorme. Com o Spring Cloud, essa mudança é feita em apenas um lugar, e todas as aplicações serão atualizadas.
+ 
+## Kubernetes
+
+ O Kubernetes, ou k8s, é uma ferramenta para facilitar a execução e a operação de contêineres inicialmente desenvolvida por engenheiros do
+Google, mas hoje aberta para ser utilizada em diversas plataformas. Nela, é possível definir diversas opções para a implantação, execução e
+disponibilização dos contêineres de forma fácil e, em muitos casos, automática.
+ 
+ Atualmente, o k8s é uma das principais ferramentas de DevOps, pois é utilizada normalmente em ambientes de produção e homologação das
+aplicações. Porém, também é possível a criação de um cluster local em uma máquina de desenvolvimento, o que facilita bastante os testes locais de uma
+aplicação e também aumenta a confiabilidade de um novodesenvolvimento, já que o ambiente de programação é muito mais próximo
+do ambiente de produção.
+
+A estrutura básica dessa ferramenta é criar definições para os contêineres que serão executados, com algumas configurações básicas como número de
+CPUs e quantidade de memória necessária para executar esse contêiner. A partir deles, é possível criar máquinas virtuais (chamadas Pods) que os
+executam. Assim, o k8s disponibiliza diversas funcionalidades para facilitar e otimizar a execução dos Pods, como aproveitar melhor o hardware da
+máquina alocando e desalocando recursos automaticamente, monitorar aplicações, escalar rapidamente e automaticamente serviços de acordo com
+o uso de hardware e garantir a autorrecuperação das aplicações de forma rápida e simples
+ 
 ## Referencias
 
  [Arquitetura Monolítica e Microsserviços](https://www.opus-software.com.br/micro-servicos-arquietura-monolitica/)
